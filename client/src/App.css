@@ -592,3 +592,96 @@ select:focus, .github-zone input:focus {
   margin-bottom: 14px;
   animation: fadeUp 0.3s ease both;
 }
+
+/* ---------- Theme toggle ---------- */
+.theme-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-2);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.theme-toggle:hover { transform: translateY(-2px) rotate(-12deg); border-color: var(--accent); }
+
+/* ---------- Stats / charts ---------- */
+.stats { margin-top: 14px; }
+.stat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-num { display: block; font-size: 22px; font-weight: 800; line-height: 1.1; }
+.stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.charts { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.chart-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.chart-card h4 { margin: 0 0 12px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.donut-wrap { display: flex; align-items: center; gap: 16px; }
+.donut { width: 110px; height: 110px; flex-shrink: 0; }
+.donut-num { font-size: 22px; font-weight: 800; fill: var(--text); }
+.donut-cap { font-size: 9px; fill: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.donut-legend { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.donut-legend li { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
+.donut-legend .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.donut-legend .legend-n { margin-left: auto; color: var(--muted); font-weight: 600; }
+
+.trend { }
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 90px;
+  padding-top: 4px;
+}
+.trend-bar {
+  flex: 1;
+  min-width: 6px;
+  border-radius: 4px 4px 2px 2px;
+  transition: height 0.3s ease;
+}
+.trend-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--muted); }
+
+/* ---------- Light theme ---------- */
+:root[data-theme='light'] {
+  --bg: #eef1f8;
+  --bg-2: #ffffff;
+  --panel: rgba(255, 255, 255, 0.78);
+  --panel-solid: #ffffff;
+  --panel-2: rgba(244, 247, 252, 0.85);
+  --border: rgba(30, 50, 90, 0.12);
+  --border-strong: rgba(30, 50, 90, 0.2);
+  --text: #182032;
+  --muted: #5d6a7e;
+  --shadow: 0 12px 40px rgba(40, 60, 110, 0.12);
+}
+:root[data-theme='light'] body {
+  background:
+    radial-gradient(1100px 600px at 12% -8%, rgba(110, 142, 251, 0.14), transparent 60%),
+    radial-gradient(1000px 600px at 100% 0%, rgba(167, 119, 227, 0.12), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(67, 209, 122, 0.08), transparent 60%),
+    var(--bg);
+}
+:root[data-theme='light'] .brand h1 {
+  background: linear-gradient(180deg, #1a2233, #46506a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+:root[data-theme='light'] .tabs { background: rgba(30, 50, 90, 0.05); }
+/* Keep code blocks dark in light mode for readability, like an editor. */
+:root[data-theme='light'] .issue { background: rgba(30, 50, 90, 0.03); }

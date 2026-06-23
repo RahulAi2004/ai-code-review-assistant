@@ -29,6 +29,10 @@ const reviewSchema = new mongoose.Schema(
 
 // Compact shape for history lists (no heavy issue bodies).
 reviewSchema.methods.toListJSON = function toListJSON() {
+  const severityCounts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+  for (const issue of this.issues) {
+    if (severityCounts[issue.severity] !== undefined) severityCounts[issue.severity] += 1;
+  }
   return {
     id: this._id,
     source: this.source,
@@ -37,6 +41,7 @@ reviewSchema.methods.toListJSON = function toListJSON() {
     score: this.score,
     summary: this.summary,
     issueCount: this.issues.length,
+    severityCounts,
     createdAt: this.createdAt,
   };
 };

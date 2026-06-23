@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { listReviews, getReview, deleteReview } from '../api';
+import StatsPanel from './StatsPanel';
 
 const SOURCE_ICON = { paste: '📝', upload: '📄', github: '🐙' };
 
@@ -66,6 +67,8 @@ export default function HistoryPanel({ onOpen, refreshKey }) {
       {!loading && !error && items.length === 0 && (
         <p className="history-muted">No saved reviews yet. Run a review while signed in.</p>
       )}
+
+      <StatsPanel items={items} />
 
       <ul className="history-list">
         {items.map((r) => (

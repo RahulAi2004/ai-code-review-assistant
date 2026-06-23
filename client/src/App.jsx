@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { reviewSnippet, reviewGithub } from './api';
 import { useAuth } from './auth/AuthContext';
@@ -39,6 +39,14 @@ export default function App() {
 
   const [showAuth, setShowAuth] = useState(false);
   const [historyKey, setHistoryKey] = useState(0); // bump to refresh history
+
+  // Theme (light / dark), persisted in localStorage.
+  const [theme, setTheme] = useState(() => localStorage.getItem('acr_theme') || 'dark');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('acr_theme', theme);
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   function handleFile(e) {
     const file = e.target.files?.[0];
@@ -97,6 +105,13 @@ export default function App() {
           </div>
         </div>
         <div className="header-right">
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <span className="powered">Powered by Gemini</span>
           {user ? (
             <div className="user-box">
@@ -144,7 +159,7 @@ export default function App() {
               <div className="editor-wrap">
                 <Editor
                   height="100%"
-                  theme="vs-dark"
+                  theme={theme === 'light' ? 'light' : 'vs-dark'}
                   language={MONACO_LANG[language] || language}
                   value={code}
                   onChange={(v) => setCode(v ?? '')}
