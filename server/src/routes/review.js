@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { reviewCode } from '../services/gemini.js';
 import { fetchGithubFiles } from '../services/github.js';
+import { optionalAuth } from '../middleware/auth.js';
+import { saveReview } from './reviews.js';
 
 const router = Router();
 
@@ -9,18 +11,26 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 
 /**
  * POST /api/review
- * Body: { code, language?, filename? }
+ * Body: { code, language?, filename?, source? }
  * Reviews a single snippet pasted or uploaded by the user.
+ * If the request is authenticated, the review is saved to the user's history.
  */
 router.post(
   '/review',
+  optionalAuth,
   wrap(async (req, res) => {
-    const { code, language, filename } = req.body || {};
+    const { code, language, filename, source } = req.body || {};
     if (!code || !code.trim()) {
       return res.status(400).json({ error: 'Field "code" is required.' });
     }
     const review = await reviewCode({ code, language, filename });
-    res.json({ filename: filename || null, review });
+    const savedId = await saveReview({
+      userId: req.userId,
+      source: source === 'upload' ? 'upload' : 'paste',
+      filename,
+      review,
+    });
+    res.json({ filename: filename || null, review, savedId });
   })
 );
 
@@ -31,6 +41,7 @@ router.post(
  */
 router.post(
   '/review/github',
+  optionalAuth,
   wrap(async (req, res) => {
     const { url } = req.body || {};
     if (!url || !url.trim()) {
@@ -48,7 +59,13 @@ router.post(
           language: 'auto',
           filename: file.path,
         });
-        reviews.push({ filename: file.path, review });
+        const savedId = await saveReview({
+          userId: req.userId,
+          source: 'github',
+          filename: file.path,
+          review,
+        });
+        reviews.push({ filename: file.path, review, savedId });
       } catch (err) {
         reviews.push({ filename: file.path, error: err.message });
       }

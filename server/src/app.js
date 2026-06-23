@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import reviewRouter from './routes/review.js';
+import authRouter from './routes/auth.js';
+import reviewsRouter from './routes/reviews.js';
+import { isDbReady } from './db.js';
 
 // Builds and returns the configured Express app (without starting it).
 // Kept separate from index.js so tests can import the app and drive it
@@ -17,9 +20,12 @@ export function createApp() {
       status: 'ok',
       geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
       model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
+      dbConnected: isDbReady(),
     });
   });
 
+  app.use('/api/auth', authRouter);
+  app.use('/api/reviews', reviewsRouter);
   app.use('/api', reviewRouter);
 
   // Central error handler.
