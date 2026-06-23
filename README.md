@@ -216,6 +216,16 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 
 ---
 
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/SRS.md](docs/SRS.md) | Software Requirement Specification — scope, users, functional & non-functional requirements, use cases. |
+| [docs/DESIGN.md](docs/DESIGN.md) | System Design — architecture + UML diagrams (use case, activity, sequence, class, ER, DFD) and UI/UX notes. |
+| [docs/AI_USAGE.md](docs/AI_USAGE.md) | AI usage log (prompts, tools, modifications). |
+
+---
+
 ## 🤖 AI usage in development
 
 This project was built with AI-assisted development (Claude Code). The prompt →
