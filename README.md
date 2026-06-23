@@ -26,7 +26,11 @@ API key never reaches the browser.
 - 🎨 **Severity-coded UI** — critical / high / medium / low / info, each with a
   suggested fix and the line it refers to.
 - 🔢 **Quality score** (0–100) per file with a color-coded ring.
+- 🔐 **User accounts** (JWT auth) with a saved **review history** dashboard.
+- 💾 **MongoDB persistence** — every review by a logged-in user is stored.
+- ⬇️ **Export to Markdown** and one-click **copy** of any suggested fix.
 - ⚡ **Fast & keyless frontend** — the backend proxies all AI calls.
+- 🙋 **Works signed-out too** — reviews run in guest mode (just not saved).
 
 ---
 
@@ -47,12 +51,14 @@ server-side requests. The React app holds no secrets.
 
 ### Tech stack
 
-| Layer     | Technology                                   |
-|-----------|----------------------------------------------|
-| Frontend  | React 19, Vite, @monaco-editor/react, CSS    |
-| Backend   | Node.js, Express, @google/generative-ai      |
-| AI        | Google Gemini (`gemini-2.5-flash-lite` by default)|
-| External  | GitHub REST API                              |
+| Layer     | Technology                                          |
+|-----------|-----------------------------------------------------|
+| Frontend  | React 19, Vite, @monaco-editor/react, Context API   |
+| Backend   | Node.js, Express, @google/generative-ai             |
+| AI        | Google Gemini (`gemini-2.5-flash-lite` by default)  |
+| Database  | MongoDB + Mongoose (in-memory fallback for dev)     |
+| Auth      | JWT (jsonwebtoken) + bcrypt password hashing        |
+| External  | GitHub REST API                                     |
 
 ---
 
@@ -62,23 +68,35 @@ server-side requests. The React app holds no secrets.
 .
 ├── client/                     # React frontend (Vite)
 │   ├── src/
-│   │   ├── api.js              # calls to the backend API
-│   │   ├── App.jsx            # main UI: tabs, editor, run button
+│   │   ├── api.js              # calls to the backend API (+ auth token)
+│   │   ├── App.jsx            # main UI: tabs, editor, run, history
 │   │   ├── App.css           # all component styles
+│   │   ├── auth/AuthContext.jsx    # auth provider (token + user)
+│   │   ├── utils/exportReview.js   # markdown export + clipboard
 │   │   └── components/
-│   │       └── ReviewResults.jsx   # renders the structured review
+│   │       ├── ReviewResults.jsx   # renders the structured review
+│   │       ├── AuthModal.jsx       # login / register modal
+│   │       └── HistoryPanel.jsx    # saved-review history list
 │   ├── vite.config.js         # dev proxy /api -> :5000
 │   └── .env.example
 │
 ├── server/                     # Express backend
 │   ├── src/
-│   │   ├── index.js           # app entry, health check, error handler
-│   │   ├── routes/review.js   # /api/review and /api/review/github
+│   │   ├── index.js           # app entry — connects DB, starts server
+│   │   ├── app.js            # Express app factory (testable)
+│   │   ├── db.js             # Mongo connection (URI or in-memory)
+│   │   ├── models/           # Mongoose models: User, Review
+│   │   ├── middleware/auth.js  # JWT auth + DB guards
+│   │   ├── routes/
+│   │   │   ├── review.js     # /api/review and /api/review/github
+│   │   │   ├── auth.js       # /api/auth register / login / me
+│   │   │   └── reviews.js    # /api/reviews history CRUD
 │   │   ├── services/
-│   │   │   ├── gemini.js      # Gemini call + JSON parsing/normalising
-│   │   │   └── github.js      # fetch files from repo / PR / file URL
+│   │   │   ├── gemini.js     # Gemini call + JSON parsing/normalising
+│   │   │   └── github.js     # fetch files from repo / PR / file URL
 │   │   └── prompts/
 │   │       └── reviewPrompt.js  # the code-review prompt + JSON shape
+│   ├── tests/                 # node --test unit + integration suites
 │   └── .env.example
 │
 ├── .gitignore
@@ -126,9 +144,11 @@ Open **http://localhost:5173** and start reviewing code.
 | Variable         | Required | Description                                                        |
 |------------------|----------|--------------------------------------------------------------------|
 | `GEMINI_API_KEY` | ✅       | Your Google Gemini API key.                                        |
-| `GEMINI_MODEL`   | ❌       | Gemini model id. Defaults to `gemini-2.5-flash-lite`.                   |
+| `GEMINI_MODEL`   | ❌       | Gemini model id. Defaults to `gemini-2.5-flash-lite`.              |
 | `PORT`           | ❌       | Backend port. Defaults to `5000`.                                  |
 | `GITHUB_TOKEN`   | ❌       | GitHub PAT (`public_repo`) to raise the API rate limit to 5000/hr. |
+| `MONGODB_URI`    | ❌       | MongoDB connection string (e.g. Atlas). If omitted, an **in-memory** MongoDB is used (data is ephemeral). |
+| `JWT_SECRET`     | ❌       | Secret for signing auth tokens. Set a long random value in production. |
 
 ### `client/.env` (optional)
 
@@ -191,23 +211,44 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 {
   "source": { "type": "pr", "owner": "owner", "repo": "repo", "number": "12" },
   "fileCount": 2,
-  "reviews": [ { "filename": "src/app.js", "review": { /* ...as above... */ } } ]
+  "reviews": [ { "filename": "src/app.js", "review": { /* ...as above... */ }, "savedId": "..." } ]
 }
 ```
+
+> If the request includes a valid `Authorization: Bearer <token>` header, each
+> review is saved to the user's history and its `savedId` is returned.
+
+### Auth endpoints
+
+| Endpoint | Method | Body | Purpose |
+|----------|--------|------|---------|
+| `/api/auth/register` | POST | `{ name, email, password }` | Create an account, returns `{ token, user }`. |
+| `/api/auth/login` | POST | `{ email, password }` | Log in, returns `{ token, user }`. |
+| `/api/auth/me` | GET | — (Bearer token) | Return the current user. |
+
+### Review history (Bearer token required)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/reviews` | GET | List the user's saved reviews. |
+| `/api/reviews/:id` | GET | Fetch one full saved review. |
+| `/api/reviews/:id` | DELETE | Delete a saved review. |
 
 ---
 
 ## 🧪 Testing
 
-**34 automated tests** (25 backend, 9 frontend), all passing.
+**43 automated tests** (34 backend, 9 frontend), all passing.
 
 ```bash
-cd server && npm test     # 25 tests — node --test (unit + integration via supertest)
+cd server && npm test     # 34 tests — node --test (unit + integration via supertest)
 cd client && npm test     # 9 tests  — vitest + React Testing Library
 ```
 
 - **Backend unit:** prompt builder, GitHub URL parser, AI JSON parsing/normalising.
 - **Backend integration:** API routes (validation, status codes, health, 404).
+- **Auth/DB integration:** register, login, `me`, and history routes against an
+  in-memory MongoDB.
 - **Frontend:** `ReviewResults` rendering and the API client (mocked fetch).
 - **Manual / system:** open the app and run the bundled SQL-injection sample — the
   review should flag it as a security issue.

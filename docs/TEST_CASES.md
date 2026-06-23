@@ -70,6 +70,22 @@ cd client && npm test
 | I-04 | GitHub review without URL | `POST /api/review/github {}` | 400, error mentions "url" | ✅ |
 | I-05 | Unknown route | `GET /api/does-not-exist` | 404 | ✅ |
 
+## 3b. Automated Auth & Database Tests (Backend)
+
+Run against an in-memory MongoDB (no setup needed).
+
+| # | Test case | Expected result | Status |
+|---|-----------|-----------------|--------|
+| A-01 | Register creates account + token | 201, token returned | ✅ |
+| A-02 | Register rejects duplicate email | 409 | ✅ |
+| A-03 | Register rejects short password | 400 | ✅ |
+| A-04 | Login with correct credentials | 200, token | ✅ |
+| A-05 | Login with wrong password | 401 | ✅ |
+| A-06 | `GET /me` without token | 401 | ✅ |
+| A-07 | `GET /me` with valid token | 200, correct user | ✅ |
+| A-08 | `GET /reviews` without token | 401 | ✅ |
+| A-09 | `GET /reviews` with token | 200, array | ✅ |
+
 ## 4. Automated Tests (Frontend)
 
 | # | Test case | Expected result | Status |
@@ -122,8 +138,9 @@ and note usability improvements made as a result.
 | Suite | Tests | Passing |
 |-------|-------|---------|
 | Backend unit | 20 | 20 ✅ |
-| Backend integration | 5 | 5 ✅ |
+| Backend integration (API) | 5 | 5 ✅ |
+| Backend auth/DB integration | 9 | 9 ✅ |
 | Frontend | 9 | 9 ✅ |
-| **Total automated** | **34** | **34 ✅** |
+| **Total automated** | **43** | **43 ✅** |
 
 Manual system and UAT cases are executed during the live demonstration.
