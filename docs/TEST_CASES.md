@@ -58,6 +58,7 @@ cd client && npm test
 | U-17 | Invalid severity coerced | severity = `apocalyptic` | severity = `info` | ✅ |
 | U-18 | Valid severity + line kept | severity=high, line=12 | Unchanged | ✅ |
 | U-19 | Non-integer line nulled | line = `oops` | line = null | ✅ |
+| U-20 | Code fence inside JSON string (regression) | suggestion contains ` ```sql … ``` ` | Parses correctly, suggestion preserved | ✅ |
 
 ## 3. Automated Integration Tests (Backend API)
 
@@ -120,9 +121,9 @@ and note usability improvements made as a result.
 
 | Suite | Tests | Passing |
 |-------|-------|---------|
-| Backend unit | 19 | 19 ✅ |
+| Backend unit | 20 | 20 ✅ |
 | Backend integration | 5 | 5 ✅ |
 | Frontend | 9 | 9 ✅ |
-| **Total automated** | **33** | **33 ✅** |
+| **Total automated** | **34** | **34 ✅** |
 
 Manual system and UAT cases are executed during the live demonstration.

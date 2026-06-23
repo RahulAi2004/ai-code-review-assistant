@@ -51,7 +51,7 @@ server-side requests. The React app holds no secrets.
 |-----------|----------------------------------------------|
 | Frontend  | React 19, Vite, @monaco-editor/react, CSS    |
 | Backend   | Node.js, Express, @google/generative-ai      |
-| AI        | Google Gemini (`gemini-2.0-flash` by default)|
+| AI        | Google Gemini (`gemini-2.5-flash-lite` by default)|
 | External  | GitHub REST API                              |
 
 ---
@@ -126,7 +126,7 @@ Open **http://localhost:5173** and start reviewing code.
 | Variable         | Required | Description                                                        |
 |------------------|----------|--------------------------------------------------------------------|
 | `GEMINI_API_KEY` | ✅       | Your Google Gemini API key.                                        |
-| `GEMINI_MODEL`   | ❌       | Gemini model id. Defaults to `gemini-2.0-flash`.                   |
+| `GEMINI_MODEL`   | ❌       | Gemini model id. Defaults to `gemini-2.5-flash-lite`.                   |
 | `PORT`           | ❌       | Backend port. Defaults to `5000`.                                  |
 | `GITHUB_TOKEN`   | ❌       | GitHub PAT (`public_repo`) to raise the API rate limit to 5000/hr. |
 
@@ -144,7 +144,7 @@ Open **http://localhost:5173** and start reviewing code.
 Returns server status and whether the Gemini key is configured.
 
 ```json
-{ "status": "ok", "geminiConfigured": true, "model": "gemini-2.0-flash" }
+{ "status": "ok", "geminiConfigured": true, "model": "gemini-2.5-flash-lite" }
 ```
 
 ### `POST /api/review`
@@ -199,10 +199,10 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 
 ## 🧪 Testing
 
-**33 automated tests** (24 backend, 9 frontend), all passing.
+**34 automated tests** (25 backend, 9 frontend), all passing.
 
 ```bash
-cd server && npm test     # 24 tests — node --test (unit + integration via supertest)
+cd server && npm test     # 25 tests — node --test (unit + integration via supertest)
 cd client && npm test     # 9 tests  — vitest + React Testing Library
 ```
 
