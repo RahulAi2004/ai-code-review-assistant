@@ -8,9 +8,11 @@ function ScoreRing({ score }) {
   if (score == null) return null;
   const hue = Math.round((score / 100) * 120); // 0=red -> 120=green
   return (
-    <div className="score-ring" style={{ '--hue': hue }}>
-      <span className="score-value">{score}</span>
-      <span className="score-label">/ 100</span>
+    <div className="score-ring" style={{ '--hue': hue, '--pct': score }}>
+      <div className="score-ring-inner">
+        <span className="score-value">{score}</span>
+        <span className="score-label">/ 100</span>
+      </div>
     </div>
   );
 }
