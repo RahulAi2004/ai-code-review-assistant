@@ -199,11 +199,20 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 
 ## 🧪 Testing
 
-- **Manual / system test:** open the app, run the bundled vulnerable sample
-  (a SQL-injection snippet) — the review should flag it as a security issue.
-- **API test:** `GET http://localhost:5000/api/health` should return
-  `geminiConfigured: true` once your key is set.
-- See `docs/` for unit/integration test cases (added in a later phase).
+**33 automated tests** (24 backend, 9 frontend), all passing.
+
+```bash
+cd server && npm test     # 24 tests — node --test (unit + integration via supertest)
+cd client && npm test     # 9 tests  — vitest + React Testing Library
+```
+
+- **Backend unit:** prompt builder, GitHub URL parser, AI JSON parsing/normalising.
+- **Backend integration:** API routes (validation, status codes, health, 404).
+- **Frontend:** `ReviewResults` rendering and the API client (mocked fetch).
+- **Manual / system:** open the app and run the bundled SQL-injection sample — the
+  review should flag it as a security issue.
+
+Full test matrix and manual/UAT cases: [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 
@@ -222,6 +231,7 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 |----------|-------------|
 | [docs/SRS.md](docs/SRS.md) | Software Requirement Specification — scope, users, functional & non-functional requirements, use cases. |
 | [docs/DESIGN.md](docs/DESIGN.md) | System Design — architecture + UML diagrams (use case, activity, sequence, class, ER, DFD) and UI/UX notes. |
+| [docs/TEST_CASES.md](docs/TEST_CASES.md) | Test cases & testing report (33 automated tests + manual/UAT cases). |
 | [docs/AI_USAGE.md](docs/AI_USAGE.md) | AI usage log (prompts, tools, modifications). |
 
 ---
