@@ -1,4 +1,6 @@
 // Renders the structured review(s) returned by the API.
+import { useState } from 'react';
+import { downloadMarkdown, copyToClipboard } from '../utils/exportReview';
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low', 'info'];
 
@@ -10,6 +12,22 @@ function ScoreRing({ score }) {
       <span className="score-value">{score}</span>
       <span className="score-label">/ 100</span>
     </div>
+  );
+}
+
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false);
+  async function onCopy() {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  }
+  return (
+    <button className="copy-btn" onClick={onCopy} type="button">
+      {copied ? '✓ Copied' : label}
+    </button>
   );
 }
 
@@ -25,7 +43,10 @@ function IssueCard({ issue }) {
       {issue.description && <p className="issue-desc">{issue.description}</p>}
       {issue.suggestion && (
         <div className="issue-fix">
-          <span className="issue-fix-label">Suggested fix</span>
+          <div className="issue-fix-top">
+            <span className="issue-fix-label">Suggested fix</span>
+            <CopyButton text={issue.suggestion} />
+          </div>
           <pre>{issue.suggestion}</pre>
         </div>
       )}
@@ -88,34 +109,38 @@ function SingleReview({ filename, review }) {
 export default function ReviewResults({ result }) {
   if (!result) return null;
 
-  // GitHub multi-file result
-  if (Array.isArray(result.reviews)) {
-    return (
-      <div className="results">
-        <div className="results-header">
-          Reviewed {result.fileCount} file{result.fileCount === 1 ? '' : 's'} from{' '}
-          <strong>
-            {result.source.owner}/{result.source.repo}
-          </strong>
-        </div>
-        {result.reviews.map((r, i) =>
-          r.error ? (
-            <div key={i} className="review-card review-card--error">
-              <div className="review-file">📄 {r.filename}</div>
-              <p className="error-text">{r.error}</p>
-            </div>
-          ) : (
-            <SingleReview key={i} filename={r.filename} review={r.review} />
-          )
-        )}
-      </div>
-    );
-  }
+  const isGithub = Array.isArray(result.reviews);
 
-  // Single snippet result
   return (
     <div className="results">
-      <SingleReview filename={result.filename} review={result.review} />
+      <div className="results-toolbar">
+        <span className="results-label">
+          {isGithub
+            ? `Reviewed ${result.fileCount} file${result.fileCount === 1 ? '' : 's'} from `
+            : 'Review complete'}
+          {isGithub && (
+            <strong>
+              {result.source.owner}/{result.source.repo}
+            </strong>
+          )}
+        </span>
+        <button className="export-btn" onClick={() => downloadMarkdown(result)} type="button">
+          ⬇ Export .md
+        </button>
+      </div>
+
+      {isGithub
+        ? result.reviews.map((r, i) =>
+            r.error ? (
+              <div key={i} className="review-card review-card--error">
+                <div className="review-file">📄 {r.filename}</div>
+                <p className="error-text">{r.error}</p>
+              </div>
+            ) : (
+              <SingleReview key={i} filename={r.filename} review={r.review} />
+            )
+          )
+        : <SingleReview filename={result.filename} review={result.review} />}
     </div>
   );
 }

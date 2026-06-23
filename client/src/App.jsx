@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { reviewSnippet, reviewGithub } from './api';
+import { useAuth } from './auth/AuthContext';
 import ReviewResults from './components/ReviewResults';
+import AuthModal from './components/AuthModal';
+import HistoryPanel from './components/HistoryPanel';
 import './App.css';
 
 const LANGUAGES = [
@@ -21,6 +24,8 @@ const SAMPLE = `function getUser(id) {
 }`;
 
 export default function App() {
+  const { user, logout } = useAuth();
+
   const [tab, setTab] = useState('paste'); // paste | upload | github
   const [code, setCode] = useState(SAMPLE);
   const [language, setLanguage] = useState('auto');
@@ -30,6 +35,10 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
+  const [saved, setSaved] = useState(false);
+
+  const [showAuth, setShowAuth] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0); // bump to refresh history
 
   function handleFile(e) {
     const file = e.target.files?.[0];
@@ -47,12 +56,27 @@ export default function App() {
     setLoading(true);
     setError('');
     setResult(null);
+    setSaved(false);
     try {
       const data =
         tab === 'github'
           ? await reviewGithub(githubUrl)
-          : await reviewSnippet({ code, language, filename });
+          : await reviewSnippet({
+              code,
+              language,
+              filename,
+              source: tab === 'upload' || filename ? 'upload' : 'paste',
+            });
       setResult(data);
+
+      // Did the backend save it to history?
+      const wasSaved = Array.isArray(data.reviews)
+        ? data.reviews.some((r) => r.savedId)
+        : Boolean(data.savedId);
+      if (wasSaved) {
+        setSaved(true);
+        setHistoryKey((k) => k + 1);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,7 +96,21 @@ export default function App() {
             <p>Paste, upload, or link a GitHub repo — get an instant AI review.</p>
           </div>
         </div>
-        <span className="powered">Powered by Gemini</span>
+        <div className="header-right">
+          <span className="powered">Powered by Gemini</span>
+          {user ? (
+            <div className="user-box">
+              <span className="user-name">👤 {user.name}</span>
+              <button className="ghost-btn" onClick={logout}>
+                Log out
+              </button>
+            </div>
+          ) : (
+            <button className="ghost-btn" onClick={() => setShowAuth(true)}>
+              Sign in
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="layout">
@@ -154,6 +192,17 @@ export default function App() {
             {loading ? 'Reviewing…' : 'Review code'}
           </button>
           {error && <p className="error-text">{error}</p>}
+          {!user && (
+            <p className="save-hint">
+              💡{' '}
+              <button className="link-btn" onClick={() => setShowAuth(true)}>
+                Sign in
+              </button>{' '}
+              to save your reviews to history.
+            </p>
+          )}
+
+          {user && <HistoryPanel onOpen={setResult} refreshKey={historyKey} />}
         </section>
 
         <section className="panel output-panel">
@@ -169,6 +218,7 @@ export default function App() {
               <p>Analyzing your code…</p>
             </div>
           )}
+          {saved && result && <div className="saved-banner">✓ Saved to your history</div>}
           <ReviewResults result={result} />
         </section>
       </main>
@@ -176,6 +226,8 @@ export default function App() {
       <footer className="app-footer">
         Software Engineering Individual Project · AI Code Review Assistant
       </footer>
+
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
   );
 }
