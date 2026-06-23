@@ -14,7 +14,7 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 // Pull the first {...} JSON object out of a model response, tolerating any
 // stray markdown fences or prose the model might wrap around it.
-function extractJson(text) {
+export function extractJson(text) {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fenced ? fenced[1] : text;
   const start = candidate.indexOf('{');
@@ -26,7 +26,7 @@ function extractJson(text) {
 }
 
 // Normalise the model output so the frontend always gets a predictable shape.
-function normaliseReview(raw, fallbackLanguage) {
+export function normaliseReview(raw, fallbackLanguage) {
   const validSeverities = ['critical', 'high', 'medium', 'low', 'info'];
   return {
     summary: raw.summary || 'No summary returned.',
