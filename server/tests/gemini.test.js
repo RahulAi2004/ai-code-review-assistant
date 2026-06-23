@@ -26,6 +26,15 @@ test('extractJson throws when there is no JSON object', () => {
   assert.throws(() => extractJson('no json here'), /JSON/i);
 });
 
+test('extractJson keeps a markdown code fence inside a JSON string value', () => {
+  // Regression: a suggestion containing ``` must not be mistaken for an
+  // outer code fence and must parse as part of the JSON.
+  const text = '{"summary":"fix it","suggestion":"```sql\\nSELECT 1;\\n```"}';
+  const obj = extractJson(text);
+  assert.equal(obj.summary, 'fix it');
+  assert.ok(obj.suggestion.includes('SELECT 1;'));
+});
+
 // ---------- normaliseReview ----------
 
 test('normaliseReview fills defaults for a sparse object', () => {

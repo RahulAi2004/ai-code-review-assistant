@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { buildReviewPrompt } from '../prompts/reviewPrompt.js';
 
 const apiKey = process.env.GEMINI_API_KEY;
-const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
 
 if (!apiKey) {
   console.warn(
@@ -15,8 +15,19 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 // Pull the first {...} JSON object out of a model response, tolerating any
 // stray markdown fences or prose the model might wrap around it.
 export function extractJson(text) {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fenced ? fenced[1] : text;
+  const trimmed = (text || '').trim();
+
+  // Only strip a code fence if the WHOLE response is wrapped in one. Doing this
+  // unconditionally would wrongly match backticks inside a JSON string value
+  // (e.g. a code snippet in the "suggestion" field).
+  let candidate = trimmed;
+  if (trimmed.startsWith('```')) {
+    const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fenced) candidate = fenced[1];
+  }
+
+  // Slice from the first "{" to the last "}" — the outer JSON object. Braces
+  // inside string values are handled correctly by JSON.parse.
   const start = candidate.indexOf('{');
   const end = candidate.lastIndexOf('}');
   if (start === -1 || end === -1) {
@@ -46,6 +57,27 @@ export function normaliseReview(raw, fallbackLanguage) {
   };
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Gemini occasionally returns a transient 503 ("high demand") or 429. Retry a
+// few times with a short backoff before giving up.
+async function generateWithRetry(model, prompt, attempts = 4) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await model.generateContent(prompt);
+    } catch (err) {
+      lastErr = err;
+      const transient = /\b(503|429|overloaded|high demand|Service Unavailable)\b/i.test(
+        err.message || ''
+      );
+      if (!transient || i === attempts - 1) throw err;
+      await sleep(1500 * (i + 1));
+    }
+  }
+  throw lastErr;
+}
+
 /**
  * Run an AI code review on a single piece of code.
  * @returns {Promise<object>} normalised review object
@@ -60,11 +92,16 @@ export async function reviewCode({ code, language = 'auto', filename = '' }) {
 
   const model = genAI.getGenerativeModel({
     model: modelName,
-    generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: 'application/json',
+      // Give the model enough room so the JSON review is never truncated.
+      maxOutputTokens: 8192,
+    },
   });
 
   const prompt = buildReviewPrompt({ code, language, filename });
-  const result = await model.generateContent(prompt);
+  const result = await generateWithRetry(model, prompt);
   const text = result.response.text();
 
   let parsed;
