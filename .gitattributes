@@ -1,0 +1,4 @@
+# Force LF line endings for files that run on Linux servers (CRLF would break them).
+*.sh text eol=lf
+deploy/nginx.conf text eol=lf
+deploy/aicodereview.service text eol=lf
