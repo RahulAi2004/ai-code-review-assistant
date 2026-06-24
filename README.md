@@ -280,6 +280,7 @@ so no CORS and no `VITE_API_BASE`. Wired via [`vercel.json`](vercel.json),
 
 | Document | Description |
 |----------|-------------|
+| [docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md) | **Final Project Report** — full report covering all phases (problem, requirements, design, AI usage, implementation, testing, deployment, user manual). |
 | [docs/SRS.md](docs/SRS.md) | Software Requirement Specification — scope, users, functional & non-functional requirements, use cases. |
 | [docs/DESIGN.md](docs/DESIGN.md) | System Design — architecture + UML diagrams (use case, activity, sequence, class, ER, DFD) and UI/UX notes. |
 | [docs/TEST_CASES.md](docs/TEST_CASES.md) | Test cases & testing report (43 automated tests + manual/UAT cases). |
