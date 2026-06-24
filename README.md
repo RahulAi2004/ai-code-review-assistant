@@ -261,14 +261,18 @@ Full test matrix and manual/UAT cases: [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ## ☁️ Deployment
 
-- **Frontend** → **Vercel** (`client/` as root, Vite preset). Set `VITE_API_BASE`
-  to the backend URL.
-- **Backend** → **Render** (uses [`render.yaml`](render.yaml); root `server/`,
-  start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`). Set `GEMINI_API_KEY`
-  and `MONGODB_URI` in the dashboard.
-- **Database** → **MongoDB Atlas** (free tier).
+**All on Vercel** (single project): the React app is served as static files and the
+FastAPI backend runs as a **Python serverless function** under `/api` — same domain,
+so no CORS and no `VITE_API_BASE`. Wired via [`vercel.json`](vercel.json),
+[`api/index.py`](api/index.py), and the root [`requirements.txt`](requirements.txt).
+
+1. Import the repo at https://vercel.com (keep Root Directory = repo root).
+2. Add env vars: `GEMINI_API_KEY` (and `MONGODB_URI` from MongoDB Atlas for
+   accounts/history). Do **not** set `VITE_API_BASE`.
+3. Deploy → live URL.
 
 📖 **Full step-by-step guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+*(An alternative Render-based backend setup via [`render.yaml`](render.yaml) is also included.)*
 
 ---
 
