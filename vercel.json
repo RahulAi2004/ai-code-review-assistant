@@ -1,10 +1,20 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "echo 'install handled in buildCommand'",
-  "buildCommand": "cd client && npm install && npm run build",
-  "outputDirectory": "client/dist",
-  "functions": {
-    "api/index.py": { "includeFiles": "server/**" }
-  },
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index" }]
+  "version": 2,
+  "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["server/**"] }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.py" },
+    { "src": "/(.+\\.[a-zA-Z0-9]+)$", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
