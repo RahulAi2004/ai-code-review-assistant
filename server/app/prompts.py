@@ -1,7 +1,9 @@
-// Builds the instruction prompt sent to Gemini for a code review.
-// We force a strict JSON shape so the frontend can render structured results.
+"""Builds the instruction prompt sent to Gemini for a code review.
 
-export const REVIEW_JSON_SHAPE = `{
+We force a strict JSON shape so the frontend can render structured results.
+"""
+
+REVIEW_JSON_SHAPE = """{
   "summary": "string — 2-3 sentence overall assessment of the code",
   "score": "number from 0 to 100 — overall code quality score",
   "language": "string — the detected programming language",
@@ -16,17 +18,19 @@ export const REVIEW_JSON_SHAPE = `{
     }
   ],
   "strengths": ["string — things the code does well"]
-}`;
+}"""
 
-export function buildReviewPrompt({ code, language, filename }) {
-  const langHint = language && language !== 'auto'
-    ? `The code is written in ${language}.`
-    : 'Detect the programming language yourself.';
 
-  const fileHint = filename ? `The file is named "${filename}".` : '';
+def build_review_prompt(code: str, language: str = "auto", filename: str = "") -> str:
+    lang_hint = (
+        f"The code is written in {language}."
+        if language and language != "auto"
+        else "Detect the programming language yourself."
+    )
+    file_hint = f'The file is named "{filename}".' if filename else ""
 
-  return `You are a meticulous senior software engineer performing a code review.
-${langHint} ${fileHint}
+    return f"""You are a meticulous senior software engineer performing a code review.
+{lang_hint} {file_hint}
 
 Review the code below for: correctness bugs, security vulnerabilities, performance
 problems, error handling, readability, naming, and adherence to best practices.
@@ -35,10 +39,9 @@ is solid, say so and return few or no issues.
 
 Respond with ONLY a valid JSON object (no markdown, no code fences) matching exactly
 this shape:
-${REVIEW_JSON_SHAPE}
+{REVIEW_JSON_SHAPE}
 
 Here is the code to review:
-\`\`\`
-${code}
-\`\`\``;
-}
+```
+{code}
+```"""
