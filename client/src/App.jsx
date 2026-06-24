@@ -115,7 +115,6 @@ export default function App() {
           <span className="powered">Powered by Gemini</span>
           {user ? (
             <div className="user-box">
-              <span className="user-name">👤 {user.name}</span>
               <button className="ghost-btn" onClick={logout}>
                 Log out
               </button>
