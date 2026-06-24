@@ -1,0 +1,26 @@
+# Render Blueprint for the AI Code Review Assistant backend (FastAPI).
+# In the Render dashboard: New + → "Blueprint" → connect this repo → it reads
+# this file automatically. Then set the secret env vars (GEMINI_API_KEY,
+# MONGODB_URI) in the dashboard.
+services:
+  - type: web
+    name: ai-code-review-api
+    runtime: python
+    rootDir: server
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.5
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite
+      - key: JWT_SECRET
+        generateValue: true # Render generates a strong random secret
+      - key: GEMINI_API_KEY
+        sync: false # set this in the dashboard (secret)
+      - key: MONGODB_URI
+        sync: false # set this in the dashboard (MongoDB Atlas connection string)
+      - key: GITHUB_TOKEN
+        sync: false # optional — leave blank if unused

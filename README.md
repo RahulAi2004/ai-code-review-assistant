@@ -261,12 +261,14 @@ Full test matrix and manual/UAT cases: [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ## ☁️ Deployment
 
-- **Frontend** → Vercel or Netlify (`client/` as root, build `npm run build`,
-  output `dist`). Set `VITE_API_BASE` to the backend URL.
-- **Backend** → Render or Railway (`server/` as root). Build:
-  `pip install -r requirements.txt`. Start:
-  `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set `GEMINI_API_KEY`,
-  `MONGODB_URI`, `JWT_SECRET` (and optionally `GITHUB_TOKEN`) in the dashboard.
+- **Frontend** → **Vercel** (`client/` as root, Vite preset). Set `VITE_API_BASE`
+  to the backend URL.
+- **Backend** → **Render** (uses [`render.yaml`](render.yaml); root `server/`,
+  start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`). Set `GEMINI_API_KEY`
+  and `MONGODB_URI` in the dashboard.
+- **Database** → **MongoDB Atlas** (free tier).
+
+📖 **Full step-by-step guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ---
 
@@ -276,7 +278,8 @@ Full test matrix and manual/UAT cases: [docs/TEST_CASES.md](docs/TEST_CASES.md).
 |----------|-------------|
 | [docs/SRS.md](docs/SRS.md) | Software Requirement Specification — scope, users, functional & non-functional requirements, use cases. |
 | [docs/DESIGN.md](docs/DESIGN.md) | System Design — architecture + UML diagrams (use case, activity, sequence, class, ER, DFD) and UI/UX notes. |
-| [docs/TEST_CASES.md](docs/TEST_CASES.md) | Test cases & testing report (33 automated tests + manual/UAT cases). |
+| [docs/TEST_CASES.md](docs/TEST_CASES.md) | Test cases & testing report (43 automated tests + manual/UAT cases). |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Step-by-step deployment guide (Vercel + Render + MongoDB Atlas). |
 | [docs/AI_USAGE.md](docs/AI_USAGE.md) | AI usage log (prompts, tools, modifications). |
 
 ---
