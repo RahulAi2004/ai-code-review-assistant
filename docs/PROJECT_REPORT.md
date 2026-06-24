@@ -1,16 +1,24 @@
-# AI Code Review Assistant
-## Final Project Report
-
----
-
 <div align="center">
+
+# AI Code Review Assistant
+
+### Final Project Report
+
+<br>
+
+## Project Title: AI Code Review Assistant
+## Subject: Software Engineering
+## Submitted By: Rahul Kumar
+
+<br>
 
 **Software Engineering — AI-Based Individual Project**
 
-| | |
+| Field | Detail |
 |---|---|
 | **Project Title** | AI Code Review Assistant |
-| **Submitted by** | Rahul Kumar |
+| **Subject** | Software Engineering |
+| **Submitted By** | Rahul Kumar |
 | **Student ID** | bsai23108172 |
 | **Repository** | https://github.com/RahulAi2004/ai-code-review-assistant |
 | **Live Deployment** | http://168.144.144.184/ |
