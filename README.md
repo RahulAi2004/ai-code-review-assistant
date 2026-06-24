@@ -11,8 +11,8 @@ You can review code three ways:
 2. **Upload** a source file.
 3. **Link a GitHub** repository, pull request, or single file URL.
 
-The AI engine is **Google Gemini**, called from a small Express backend so the
-API key never reaches the browser.
+The AI engine is **Google Gemini**, called from a **FastAPI (Python)** backend so
+the API key never reaches the browser.
 
 ---
 
@@ -38,7 +38,7 @@ API key never reaches the browser.
 
 ```
 ┌─────────────────────────┐        ┌──────────────────────────┐
-│   React client (Vite)   │        │   Express backend         │
+│   React client (Vite)   │        │   FastAPI backend (Python)│
 │                         │  /api  │                           │
 │  • Monaco code editor   │ ─────▶ │  POST /api/review         │ ──▶ Gemini API
 │  • Paste / Upload / GH  │        │  POST /api/review/github  │ ──▶ GitHub REST API
@@ -51,14 +51,14 @@ server-side requests. The React app holds no secrets.
 
 ### Tech stack
 
-| Layer     | Technology                                          |
-|-----------|-----------------------------------------------------|
-| Frontend  | React 19, Vite, @monaco-editor/react, Context API   |
-| Backend   | Node.js, Express, @google/generative-ai             |
-| AI        | Google Gemini (`gemini-2.5-flash-lite` by default)  |
-| Database  | MongoDB + Mongoose (in-memory fallback for dev)     |
-| Auth      | JWT (jsonwebtoken) + bcrypt password hashing        |
-| External  | GitHub REST API                                     |
+| Layer     | Technology                                              |
+|-----------|---------------------------------------------------------|
+| Frontend  | React 19, Vite, @monaco-editor/react, Context API       |
+| Backend   | Python, FastAPI, Uvicorn, google-generativeai           |
+| AI        | Google Gemini (`gemini-2.5-flash-lite` by default)      |
+| Database  | MongoDB via PyMongo (in-memory `mongomock` for dev)     |
+| Auth      | JWT (PyJWT) + bcrypt password hashing                   |
+| External  | GitHub REST API (via httpx)                             |
 
 ---
 
@@ -80,23 +80,21 @@ server-side requests. The React app holds no secrets.
 │   ├── vite.config.js         # dev proxy /api -> :5000
 │   └── .env.example
 │
-├── server/                     # Express backend
-│   ├── src/
-│   │   ├── index.js           # app entry — connects DB, starts server
-│   │   ├── app.js            # Express app factory (testable)
-│   │   ├── db.js             # Mongo connection (URI or in-memory)
-│   │   ├── models/           # Mongoose models: User, Review
-│   │   ├── middleware/auth.js  # JWT auth + DB guards
-│   │   ├── routes/
-│   │   │   ├── review.js     # /api/review and /api/review/github
-│   │   │   ├── auth.js       # /api/auth register / login / me
-│   │   │   └── reviews.js    # /api/reviews history CRUD
-│   │   ├── services/
-│   │   │   ├── gemini.js     # Gemini call + JSON parsing/normalising
-│   │   │   └── github.js     # fetch files from repo / PR / file URL
-│   │   └── prompts/
-│   │       └── reviewPrompt.js  # the code-review prompt + JSON shape
-│   ├── tests/                 # node --test unit + integration suites
+├── server/                     # FastAPI backend (Python)
+│   ├── app/
+│   │   ├── main.py            # FastAPI app, health, error handlers, routers
+│   │   ├── db.py             # Mongo connection (URI or in-memory mongomock)
+│   │   ├── auth.py           # JWT + bcrypt + auth dependencies
+│   │   ├── gemini_service.py  # Gemini call + JSON parsing/normalising
+│   │   ├── github_service.py  # fetch files from repo / PR / file URL
+│   │   ├── prompts.py        # the code-review prompt + JSON shape
+│   │   └── routers/
+│   │       ├── review.py     # /api/review and /api/review/github
+│   │       ├── auth.py       # /api/auth register / login / me
+│   │       └── reviews.py    # /api/reviews history CRUD
+│   ├── tests/                 # pytest unit + integration suites
+│   ├── run.py                 # uvicorn entry point
+│   ├── requirements.txt
 │   └── .env.example
 │
 ├── .gitignore
@@ -109,21 +107,25 @@ server-side requests. The React app holds no secrets.
 
 ### Prerequisites
 
-- Node.js 18+ (developed on Node 24)
+- **Python 3.10+** (developed on Python 3.12)
+- **Node.js 18+** (for the React frontend only)
 - A free **Gemini API key** — https://aistudio.google.com/app/apikey
 
-### 1. Backend
+### 1. Backend (FastAPI)
 
 ```bash
 cd server
-npm install
-cp .env.example .env        # then edit .env and paste your GEMINI_API_KEY
-npm run dev                 # starts http://localhost:5000
+python -m venv .venv
+.venv\Scripts\activate           # Windows  (macOS/Linux: source .venv/bin/activate)
+pip install -r requirements.txt
+copy .env.example .env           # then edit .env and paste your GEMINI_API_KEY
+python run.py                    # starts http://localhost:5000
 ```
 
-> On Windows PowerShell, use `copy .env.example .env`.
+> Interactive API docs (Swagger UI) are auto-generated at
+> **http://localhost:5000/docs**.
 
-### 2. Frontend
+### 2. Frontend (React)
 
 In a second terminal:
 
@@ -241,14 +243,14 @@ Review code from a GitHub URL (repo, pull request, or `blob` file URL).
 **43 automated tests** (34 backend, 9 frontend), all passing.
 
 ```bash
-cd server && npm test     # 34 tests — node --test (unit + integration via supertest)
-cd client && npm test     # 9 tests  — vitest + React Testing Library
+cd server && pytest        # 34 tests — pytest (unit + integration via TestClient)
+cd client && npm test      # 9 tests  — vitest + React Testing Library
 ```
 
 - **Backend unit:** prompt builder, GitHub URL parser, AI JSON parsing/normalising.
 - **Backend integration:** API routes (validation, status codes, health, 404).
 - **Auth/DB integration:** register, login, `me`, and history routes against an
-  in-memory MongoDB.
+  in-memory MongoDB (`mongomock`).
 - **Frontend:** `ReviewResults` rendering and the API client (mocked fetch).
 - **Manual / system:** open the app and run the bundled SQL-injection sample — the
   review should flag it as a security issue.
@@ -261,8 +263,10 @@ Full test matrix and manual/UAT cases: [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 - **Frontend** → Vercel or Netlify (`client/` as root, build `npm run build`,
   output `dist`). Set `VITE_API_BASE` to the backend URL.
-- **Backend** → Render or Railway (`server/` as root, start `npm start`). Set
-  `GEMINI_API_KEY` (and optionally `GITHUB_TOKEN`) in the dashboard.
+- **Backend** → Render or Railway (`server/` as root). Build:
+  `pip install -r requirements.txt`. Start:
+  `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Set `GEMINI_API_KEY`,
+  `MONGODB_URI`, `JWT_SECRET` (and optionally `GITHUB_TOKEN`) in the dashboard.
 
 ---
 

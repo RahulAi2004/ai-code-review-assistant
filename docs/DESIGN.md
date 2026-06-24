@@ -20,19 +20,19 @@ reviews on demand without a database.
 
 ```
 ┌──────────────────────────┐         ┌───────────────────────────┐
-│      React Client        │  HTTP   │      Express Backend        │
+│      React Client        │  HTTP   │     FastAPI Backend (Py)    │
 │  (Vite + Monaco editor)  │ ──JSON─▶│                             │
-│                          │         │  routes/review.js           │
-│  • Paste / Upload / GH   │◀──JSON──│  services/gemini.js  ───────┼──▶ Gemini API
-│  • Results panel         │         │  services/github.js  ───────┼──▶ GitHub API
-└──────────────────────────┘         │  prompts/reviewPrompt.js    │
+│                          │         │  routers/review.py          │
+│  • Paste / Upload / GH   │◀──JSON──│  gemini_service.py  ────────┼──▶ Gemini API
+│  • Results panel         │         │  github_service.py  ────────┼──▶ GitHub API
+└──────────────────────────┘         │  prompts.py                 │
                                       └───────────────────────────┘
 ```
 
 - **Presentation layer:** React components (`App.jsx`, `ReviewResults.jsx`).
-- **API layer:** Express routes validating input and shaping responses.
-- **Service layer:** `gemini.js` (AI review) and `github.js` (code fetching).
-- **Prompt layer:** `reviewPrompt.js` defines the instruction and JSON contract.
+- **API layer:** FastAPI routers validating input and shaping responses.
+- **Service layer:** `gemini_service.py` (AI review) and `github_service.py` (code fetching).
+- **Prompt layer:** `prompts.py` defines the instruction and JSON contract.
 
 ---
 
@@ -113,7 +113,7 @@ flowchart TD
 sequenceDiagram
     actor U as User
     participant C as React Client
-    participant S as Express API
+    participant S as FastAPI
     participant G as Gemini API
 
     U->>C: Paste code, click "Review code"
@@ -132,7 +132,7 @@ sequenceDiagram
 sequenceDiagram
     actor U as User
     participant C as React Client
-    participant S as Express API
+    participant S as FastAPI
     participant H as GitHub API
     participant G as Gemini API
 
@@ -337,8 +337,8 @@ layout above can be used directly as the reference for those mockups.
 | App shell | Tabs, editor, run action, state | `client/src/App.jsx` |
 | Results renderer | Score, issues, strengths | `client/src/components/ReviewResults.jsx` |
 | API client | HTTP calls to backend | `client/src/api.js` |
-| Server entry | Express app, health, errors | `server/src/index.js` |
-| Routes | Request validation & response shape | `server/src/routes/review.js` |
-| AI service | Gemini call, JSON parsing | `server/src/services/gemini.js` |
-| GitHub service | Fetch repo/PR/file source | `server/src/services/github.js` |
-| Prompt | Review instruction + JSON contract | `server/src/prompts/reviewPrompt.js` |
+| Server entry | FastAPI app, health, error handlers | `server/app/main.py` |
+| Routes | Request validation & response shape | `server/app/routers/review.py` |
+| AI service | Gemini call, JSON parsing | `server/app/gemini_service.py` |
+| GitHub service | Fetch repo/PR/file source | `server/app/github_service.py` |
+| Prompt | Review instruction + JSON contract | `server/app/prompts.py` |

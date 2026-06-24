@@ -28,7 +28,7 @@ for each file. A review contains an overall summary, a quality score (0–100), 
 list of issues classified by severity and category (each with a suggested fix and
 line reference), and a list of the code's strengths.
 
-The application is split into a **React frontend** and an **Express backend**. The
+The application is split into a **React frontend** and a **FastAPI (Python) backend**. The
 backend keeps the Gemini API key secret and performs all calls to Gemini and to
 the GitHub REST API. In the current phase the system has **no database and no user
 authentication**; reviews are computed on demand and not persisted. Persistence
@@ -48,7 +48,7 @@ and login are planned for a later phase (see [Section 8](#8-future-scope)).
 ### 1.4 References
 - Google Gemini API — https://ai.google.dev/
 - GitHub REST API — https://docs.github.com/rest
-- React — https://react.dev · Vite — https://vite.dev · Express — https://expressjs.com
+- React — https://react.dev · Vite — https://vite.dev · FastAPI — https://fastapi.tiangolo.com
 
 ---
 
@@ -58,7 +58,7 @@ and login are planned for a later phase (see [Section 8](#8-future-scope)).
 The AI Code Review Assistant is a client–server web application.
 
 ```
-User → React client → Express backend → Gemini API   (AI review)
+User → React client → FastAPI backend → Gemini API   (AI review)
                                       → GitHub API    (fetch code)
 ```
 
@@ -84,7 +84,7 @@ No login is required in the current phase, so any visitor can use all features.
 
 ### 2.4 Operating Environment
 - **Client:** any modern desktop browser (Chrome, Edge, Firefox) with JavaScript.
-- **Server:** Node.js 18+ runtime (developed on Node 24).
+- **Server:** Python 3.10+ runtime (developed on Python 3.12) running FastAPI/Uvicorn.
 - **External services:** Google Gemini API and GitHub REST API (internet required).
 
 ### 2.5 Design and Implementation Constraints
@@ -138,7 +138,7 @@ Each requirement has a unique ID (FR-n) and a priority (High / Medium / Low).
 | **NFR-5** | **Usability** | The UI shall be a single-screen, two-panel layout (input / results), responsive down to mobile widths, with severity colour-coding for quick scanning. |
 | **NFR-6** | **Maintainability** | Code is modular: prompt, AI service, GitHub service, and routes are separated; the frontend separates API, components, and styling. |
 | **NFR-7** | **Availability** | The frontend and backend are independently deployable (e.g. Vercel + Render) so either can be updated without the other. |
-| **NFR-8** | **Portability** | The app runs on any OS with Node.js 18+ and a modern browser. |
+| **NFR-8** | **Portability** | The app runs on any OS with Python 3.10+ (backend), Node.js 18+ (frontend build), and a modern browser. |
 
 ---
 
